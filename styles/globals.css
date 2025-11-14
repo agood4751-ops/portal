@@ -1,0 +1,263 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #__next {
+  height: 100%;
+}
+
+/* styles/globals.css */
+/* Import a clean Google font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+:root{
+  --bg: #f6f8fb;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --accent-1: #6366f1; /* indigo */
+  --accent-2: #06b6d4; /* teal */
+  --accent-3: #f59e0b; /* amber */
+  --glass: rgba(255,255,255,0.6);
+  --radius: 12px;
+  --card-shadow: 0 6px 18px rgba(20,23,35,0.06);
+}
+
+/* Reset + basics */
+* { box-sizing: border-box; }
+html,body,#__next { height:100%; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  color: #0f172a;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Container helper */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(90deg, rgba(99,102,241,0.06), rgba(6,182,212,0.03));
+  border-bottom: 1px solid rgba(15,23,42,0.03);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+.header-inner {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  padding: 0.8rem 0;
+}
+
+/* Brand */
+.brand {
+  display:flex;
+  flex-direction:column;
+}
+.brand .title {
+  font-weight:700;
+  color: var(--accent-1);
+  font-size:1.05rem;
+  letter-spacing: -0.2px;
+}
+.brand .tag {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Nav */
+.nav {
+  display:flex;
+  gap: 0.5rem;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.nav a { text-decoration:none; color:var(--muted); font-weight:600; font-size:0.95rem; padding:0.45rem 0.6rem; border-radius:8px; }
+.nav a:hover { color:var(--accent-1); background: rgba(99,102,241,0.06); }
+
+/* Buttons */
+.btn {
+  display:inline-flex;
+  align-items:center;
+  gap:0.6rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  font-weight:600;
+  cursor:pointer;
+  border: none;
+}
+.btn-primary {
+  background: linear-gradient(90deg,var(--accent-1), #7c3aed);
+  color: white;
+  box-shadow: 0 8px 20px rgba(99,102,241,0.12);
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(15,23,42,0.06);
+  color: var(--accent-1);
+}
+
+/* Hero */
+.hero {
+  display:grid;
+  grid-template-columns: 1fr 420px;
+  gap: 1.5rem;
+  align-items:center;
+  margin-bottom:1.5rem;
+}
+.hero-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.7));
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+}
+.hero-visual {
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  min-height: 220px;
+  position: relative;
+}
+
+/* Search */
+.search {
+  display:flex;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  align-items:center;
+}
+.input {
+  flex:1;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(15,23,42,0.06);
+  background: white;
+  font-weight:600;
+}
+.input::placeholder { color: #9CA3AF; font-weight:500; }
+
+/* Grid */
+.grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+  gap: 1rem;
+}
+
+/* Job card */
+.job-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 0.95rem;
+  box-shadow: var(--card-shadow);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.job-card:hover { transform: translateY(-6px); box-shadow: 0 18px 36px rgba(15,23,42,0.08); }
+.job-title { font-weight:700; color: #0f172a; }
+.job-meta { color:var(--muted); font-size:0.92rem; margin-top:0.25rem; }
+.badge { display:inline-block; padding: 0.25rem 0.6rem; border-radius: 999px; font-size: 12px; font-weight:700; }
+.badge-field { background: rgba(6,182,212,0.12); color: var(--accent-2); }
+.badge-featured { background: rgba(245,158,11,0.12); color: var(--accent-3); }
+
+/* Forms */
+.form-card { background:var(--card); padding:1rem; border-radius:12px; box-shadow:var(--card-shadow); }
+
+/* Footer small */
+.footer-small { font-size: 13px; color: var(--muted); text-align:center; padding:2rem 0; }
+
+
+
+/* --- Responsive header tweaks --- */
+
+/* hide mobile menu button by default (desktop) */
+.mobile-menu-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* ensure nav-desktop visible by default */
+.nav-desktop { display: flex; gap: 10px; align-items: center; }
+
+/* small screens: show hamburger, hide desktop nav and compress right-side buttons */
+@media (max-width: 640px) {
+  .mobile-menu-button { display: inline-flex; }      /* show hamburger */
+  .nav-desktop { display: none; }                    /* hide desktop nav */
+  .nav-right { gap: 8px; }
+
+  /* make right-side CTA buttons compact on mobile */
+  .nav-right .btn { padding: 8px 10px; font-size: 13px; }
+  .brand .title { font-size: 1rem; }
+}
+
+
+/* Header behavior: show hamburger always; hide desktop nav & header auth when logged-in */
+
+.mobile-menu-button {
+  display: inline-flex;       /* now visible on all sizes */
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Desktop nav and auth area - visible by default (logged out) */
+.nav-desktop { display: flex; gap: 10px; align-items: center; }
+.nav-right { display: flex; align-items: center; gap: 12px; }
+
+/* When logged-in, hide desktop nav and header auth on larger screens.
+   The header gets class .auth-logged-in (set in Header.js) */
+@media (min-width: 641px) {
+  .auth-logged-in .nav-desktop { display: none; }
+  .auth-logged-in .nav-right { display: none; }
+  /* keep hamburger visible so logged-in users can open the drawer */
+  .auth-logged-in .mobile-menu-button { display: inline-flex; }
+}
+
+/* On small screens <=640px the desktop nav is already hidden by previous rules,
+   hamburger remains visible and drawer contains all links. */
+@media (max-width: 640px) {
+  .nav-desktop { display: none; } /* ensure nav hidden on mobile */
+  .nav-right .btn { padding: 8px 10px; font-size: 13px; }
+  .brand .title { font-size: 1rem; }
+}
+
+
+
+
+
+
+/* Responsive rules */
+@media (max-width: 1024px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-visual { min-height:200px; }
+  .container { padding: 1rem; }
+  .header-inner { padding: 0.6rem 0; }
+}
+
+@media (max-width: 640px) {
+  .search { flex-direction: column; align-items: stretch; }
+  .search .btn { width: 100%; }
+  .hero-card { padding: 1rem; }
+  .job-card { padding: 0.8rem; }
+  .brand .title { font-size: 1rem; }
+  .nav a { font-size: 0.9rem; padding: 0.4rem 0.5rem; }
+}

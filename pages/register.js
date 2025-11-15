@@ -12,7 +12,8 @@ export default function Register() {
     if (!form.name.trim()) return 'Name is required';
     if (!form.email.trim()) return 'Email is required';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'Email is invalid';
-    if (!/^[A-Za-z0-9]{6}$/.test(form.password)) return 'Password must be exactly 6 alphanumeric characters';
+    if (!form.password || form.password.length < 6) return 'Password must be at least 6 characters';
+    if (!/^[A-Za-z0-9]+$/.test(form.password)) return 'Password must be alphanumeric (letters & numbers only)';
     if (form.password !== form.confirmPassword) return 'Password and confirm password do not match';
     return null;
   }
@@ -152,13 +153,13 @@ export default function Register() {
                   type="password" 
                   value={form.password} 
                   onChange={e => setForm({...form, password: e.target.value})} 
-                  placeholder="6 alphanumeric characters"
+                  placeholder="At least 6 alphanumeric characters"
                   className="form-input"
                   required
                 />
                 <div className="password-hint">
-                  Password must be exactly 6 alphanumeric characters (letters & numbers only)
-                </div>
+                Password must be at least 6 alphanumeric characters (letters & numbers only)
+              </div>
               </div>
 
               <div className="form-group">

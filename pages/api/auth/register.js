@@ -12,8 +12,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields (name, email, password)' });
     }
 
-    if (!/^[A-Za-z0-9]{6}$/.test(password)) {
-      return res.status(400).json({ error: 'Password must be exactly 6 alphanumeric characters' });
+   // require at least 6 characters, only alphanumeric allowed
+    if (!password || password.trim().length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+    }
+    if (!/^[A-Za-z0-9]+$/.test(password)) {
+      return res.status(400).json({ error: 'Password must contain only letters and numbers.' });
     }
 
     const db = await getDb();

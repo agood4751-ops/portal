@@ -41,10 +41,16 @@ export default function JobDetail() {
     );
   }
 
-  // Format salary for display
-  const formatSalary = (pay) => {
-    if (!pay || pay === 'Not specified') return 'Salary not specified';
-    return pay;
+  // Robust salary formatter - prefer job.salary then fallbacks
+  const formatSalary = (jobObj) => {
+    if (!jobObj) return 'Salary not specified';
+    const raw = jobObj.salary || jobObj.pay || jobObj.payScale || jobObj.salaryRange || '';
+    if (!raw) return 'Salary not specified';
+    const s = String(raw).trim();
+    if (!s) return 'Salary not specified';
+    // normalize small variants
+    if (/^(not|n\/a|na)/i.test(s)) return 'Salary not specified';
+    return s;
   };
 
   // Get field color
@@ -102,7 +108,7 @@ export default function JobDetail() {
                   <span className="meta-icon">💰</span>
                   <div className="meta-content">
                     <div className="meta-label">Salary</div>
-                    <div className="meta-value salary">{formatSalary(job.pay)}</div>
+                    <div className="meta-value salary">{formatSalary(job)}</div>
                   </div>
                 </div>
                 

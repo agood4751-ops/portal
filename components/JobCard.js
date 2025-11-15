@@ -2,10 +2,16 @@
 import Link from 'next/link';
 
 export default function JobCard({ job }) {
-  // Format salary display
-  const formatSalary = (pay) => {
-    if (!pay || pay === 'Salary not specified') return 'Salary not specified';
-    return pay;
+  // Format salary display - prefer job.salary but fallback to other names
+  const formatSalary = (job) => {
+    if (!job) return 'Salary not specified';
+    const raw = job.salary || job.pay || job.payScale || job.salaryRange || '';
+    if (!raw) return 'Salary not specified';
+    const s = String(raw).trim();
+    if (!s) return 'Salary not specified';
+    // if someone accidentally saved the literal fallback string, hide it
+    if (s.toLowerCase() === 'salary not specified') return 'Salary not specified';
+    return s;
   };
 
   // Format date
@@ -39,6 +45,8 @@ export default function JobCard({ job }) {
     return colors[field] || '#6b7280';
   };
 
+  const salaryText = formatSalary(job);
+
   return (
     <div className="job-card">
       <div className="job-card-header">
@@ -51,7 +59,7 @@ export default function JobCard({ job }) {
         </div>
         
         <div className="job-date">
-          {formatDate(job.published_at)}
+          {formatDate(job.published_at || job.createdAt || job.postedAt)}
         </div>
       </div>
 
@@ -70,7 +78,7 @@ export default function JobCard({ job }) {
       </div>
 
       <div className="job-salary">
-        {formatSalary(job.pay)}
+        {salaryText}
       </div>
 
       <div className="job-card-footer">
@@ -79,7 +87,7 @@ export default function JobCard({ job }) {
             {job.type || 'Full-time'}
           </span>
         </div>
-        <Link href={`/jobs/${job._id}`}>
+        <Link href={`/jobs/${job._id || job.id || ''}`}>
           <button className="view-job-btn">
             View Details
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="btn-icon">

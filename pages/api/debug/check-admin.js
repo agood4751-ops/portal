@@ -1,28 +1,25 @@
 // pages/api/debug/check-admin.js
-// TEMP DEBUG — remove this file after debugging
-import { getDb } from '../../../lib/mongodb';
+// TEMP DEBUG — remove after done
+import { connectToDatabase } from '../../../lib/mongodb';
 
 export default async function handler(req, res) {
-  // require a secret query param to reduce accidental exposure (use a random string)
   const key = req.query._key;
   if (!key || key !== process.env.DEBUG_ENDPOINT_KEY) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
   try {
-    const db = await getDb();
-    const u = await db.collection('users').findOne({ email: 'admin@admin.com' });
-    if (!u) return res.json({ found: false });
+    // connectToDatabase returns { client, db } in your lib
+    const { client, db } = await connectToDatabase();
+    // db.databaseName shows which DB the driver is currently using
+    const dbName = db.databaseName || null;
 
-    // Don't return password hash - only show presence and meta
+    const u = await db.collection('users').findOne({ email: 'admin@admin.com' });
     return res.json({
-      found: true,
-      _id: u._id?.toString?.() || null,
-      email: u.email,
-      role: u.role,
-      hasPasswordHash: !!(u.passwordHash || u.password),
-      createdAt: u.createdAt || null,
-      createdByScript: !!u.createdByScript
+      found: !!u,
+      dbName,
+      hasPasswordHash: !!(u && (u.passwordHash || u.password)),
+      id: u ? (u._id && u._id.toString ? u._id.toString() : null) : null
     });
   } catch (err) {
     console.error('debug/check-admin error', err);

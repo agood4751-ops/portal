@@ -51,14 +51,13 @@ export default function Header() {
   }, [mutate]);
 
   async function signOut() {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch (e) {}
-    mutate();
-    try {
-      localStorage.setItem('auth-change', Date.now().toString());
-    } catch (e) {}
-    router.push('/'); // Use router for client-side navigation
+    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (e) {}
+    mutate(); // Clear SWR cache
+    // Clear local storage event trigger
+    try { localStorage.setItem('auth-change', Date.now().toString()); } catch (e) {}
+    
+    // IMPORTANT: Redirect to home after logout
+    router.push('/'); 
   }
 
   return (

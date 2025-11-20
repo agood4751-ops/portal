@@ -35,15 +35,14 @@ export default function Home() {
           <div className="hero-content">
             <div className="hero-text">
               <div className="hero-badge">
-                🇨🇦 Made for Indian Job Seekers
+                Made for Job Seekers
               </div>
               <h1 className="hero-title">
                 Find Your Dream Job in 
                 <span className="gradient-text"> Canada</span>
               </h1>
               <p className="hero-description">
-                Discover thousands of Canadian job opportunities tailored for Indian professionals. 
-                Easy applications, document tracking, and career growth awaits you.
+                Unlock thousands of Canadian job opportunities designed for global talent. Enjoy seamless applications, smart document tracking, and exciting career growth.
               </p>
 
               <form className="search-form" onSubmit={onSearch}>
@@ -183,8 +182,7 @@ export default function Home() {
           <div className="trust-content">
             <div className="trust-badge">Trusted & Secure</div>
             <p className="trust-text">
-              Trusted by thousands of Indian job seekers across Canada • 
-              Your privacy matters - please avoid uploading unnecessary personal information
+              Trusted by thousands of job seekers across Canada • Your privacy matters — please avoid uploading unnecessary personal information.
             </p>
             <div className="trust-features">
               <div className="feature">

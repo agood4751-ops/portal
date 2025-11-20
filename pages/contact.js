@@ -169,8 +169,8 @@ export default function Contact() {
                     <div className="method-icon">📧</div>
                     <div className="method-info">
                       <h4>Email Us</h4>
-                      <a href={`mailto:${process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'support@canadajobsforindians.com'}`}>
-                        {process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'support@canadajobsforindians.com'}
+                      <a href={`mailto:${process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'support@hirefronfier.com'}`}>
+                        {process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'support@hirefronfier.com'}
                       </a>
                     </div>
                   </div>

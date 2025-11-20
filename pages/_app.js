@@ -1,6 +1,7 @@
 // pages/_app.js
 import '../styles/globals.css';
 import Header from '../components/Header';
+import WhatsAppWidget from '../components/WhatsAppWidget';
 
 export default function MyApp({ Component, pageProps }) {
   return (
@@ -8,10 +9,11 @@ export default function MyApp({ Component, pageProps }) {
       <Header />
       <main className="main-content">
         <Component {...pageProps} />
+        <WhatsAppWidget />
       </main>
       <footer className="footer">
         <div className="container">
-          <p>© {new Date().getFullYear()} Canada Jobs for Indians - Your Gateway to Canadian Opportunities</p>
+          <p>© {new Date().getFullYear()} HireFrontier - Your Gateway to Canadian Opportunities</p>
         </div>
       </footer>
 

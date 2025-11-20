@@ -71,7 +71,7 @@ export default function Register() {
             <div className="visual-overlay"></div>
             <div className="visual-text">
               <h2>Start Your Canadian Journey</h2>
-              <p>Join thousands of Indian professionals who found their dream jobs in Canada</p>
+              <p>Join thousands of professionals who found their dream jobs in Canada</p>
               <div className="benefits-list">
                 <div className="benefit-item">
                   <span className="benefit-icon">✅</span>

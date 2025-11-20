@@ -1,172 +1,176 @@
 // pages/candidate/profile.js
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
+import { useRouter } from 'next/router';
 
 const fetcher = (u) => fetch(u).then(r => r.json());
 
 export default function ProfilePage() {
-  const { data, mutate } = useSWR('/api/candidate/profile', fetcher);
+  const { data, mutate, isLoading } = useSWR('/api/candidate/profile', fetcher);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '' });
   const [resumeFile, setResumeFile] = useState(null);
-  const [passportFile, setPassportFile] = useState(null);
-  const [permitFile, setPermitFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (data?.profile) {
-      setForm({ name: data.profile.name || '', email: data.profile.email || '', phone: data.profile.phone || '' });
+      setForm({ 
+        name: data.profile.name || '', 
+        email: data.profile.email || '', 
+        phone: data.profile.phone || '' 
+      });
     }
   }, [data]);
 
   async function saveProfile(e) {
     e?.preventDefault();
-    const res = await fetch('/api/candidate/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
-    const body = await res.json();
-    if (!res.ok) return alert(body.error || 'Save failed');
-    setEditing(false);
-    mutate();
-  }
-
-  async function uploadDoc(file, fieldName) {
-    if (!file) return null;
-    if (file.size > Number(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE || 5242880)) {
-      alert('File too large');
-      return null;
-    }
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('field', fieldName);
-    const res = await fetch('/api/candidate/upload', { method: 'POST', body: fd });
-    const body = await res.json();
-    if (!res.ok) {
-      alert(body.error || 'Upload failed');
-      return null;
-    }
-    return body.fileId;
-  }
-
-  async function handleUploadAll(e) {
-    e?.preventDefault();
-    setUploading(true);
-    try {
-      const updates = {};
-      if (resumeFile) {
-        const id = await uploadDoc(resumeFile, 'resume');
-        if (id) updates.resume = id;
-      }
-      if (passportFile) {
-        const id = await uploadDoc(passportFile, 'passport');
-        if (id) updates.passport = id;
-      }
-      if (permitFile) {
-        const id = await uploadDoc(permitFile, 'permit');
-        if (id) updates.permit = id;
-      }
-      // Optionally send profile modifications with file ids
-      if (Object.keys(updates).length) {
-        await fetch('/api/candidate/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updates) });
-      }
-      alert('Files uploaded');
-      setResumeFile(null); setPassportFile(null); setPermitFile(null);
+    const res = await fetch('/api/candidate/profile', { 
+      method: 'PUT', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify(form) 
+    });
+    if (res.ok) {
+      setEditing(false);
       mutate();
+    } else {
+      alert('Save failed');
+    }
+  }
+
+  async function handleUpload(e) {
+    if (!resumeFile) return;
+    setUploading(true);
+    const fd = new FormData();
+    fd.append('file', resumeFile);
+    fd.append('field', 'resume');
+
+    try {
+      const res = await fetch('/api/candidate/upload', { method: 'POST', body: fd });
+      if(res.ok) {
+        const body = await res.json();
+        // Link file to profile
+        await fetch('/api/candidate/profile', { 
+           method: 'PUT', 
+           headers: {'Content-Type': 'application/json'}, 
+           body: JSON.stringify({ resume: body.files[0].id }) 
+        });
+        setResumeFile(null);
+        mutate();
+        alert('Resume updated!');
+      }
     } catch (err) {
       console.error(err);
-      alert('Upload error');
+      alert('Upload failed');
     } finally {
       setUploading(false);
     }
   }
 
+  if (isLoading) return <div className="container">Loading profile...</div>;
+
   return (
-    <div className="max-w-3xl">
-      <h2 className="text-2xl font-semibold mb-4">My Profile</h2>
+    <div className="container">
+      <h1 className="page-title">My Profile</h1>
 
-      {!data && <div>Loading...</div>}
+      <div className="grid-layout">
+        {/* Personal Info Card */}
+        <div className="card">
+          <div className="card-header">
+            <h2>Personal Information</h2>
+            {!editing && <button className="edit-btn" onClick={() => setEditing(true)}>Edit</button>}
+          </div>
 
-      {data && (
-        <div className="bg-white rounded shadow p-4 space-y-4">
-          {!editing ? (
-            <>
-              <div>
-                <div className="text-sm text-gray-500">Name</div>
-                <div className="font-medium">{data.profile?.name || '-'}</div>
+          {editing ? (
+            <form onSubmit={saveProfile} className="edit-form">
+              <div className="form-group">
+                <label>Full Name</label>
+                <input value={form.name} onChange={e => setForm({...form, name:e.target.value})} />
               </div>
-              <div>
-                <div className="text-sm text-gray-500">Email</div>
-                <div className="font-medium">{data.profile?.email || '-'}</div>
+              <div className="form-group">
+                <label>Phone</label>
+                <input value={form.phone} onChange={e => setForm({...form, phone:e.target.value})} />
               </div>
-              <div>
-                <div className="text-sm text-gray-500">Phone</div>
-                <div className="font-medium">{data.profile?.phone || '-'}</div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="text-sm text-gray-500">Uploaded documents</div>
-                <ul className="list-disc ml-6">
-                  {data.profile?.files?.length ? data.profile.files.map(f => (
-                    <li key={f.id}>
-                      <a href={`/api/file/${f.id}`} target="_blank" rel="noreferrer" className="text-indigo-600 underline">{f.originalName || f.filename}</a> <span className="text-xs text-gray-400">({f.field})</span>
-                    </li>
-                  )) : <li className="text-gray-500">No documents uploaded</li>}
-                </ul>
-              </div>
-
-              <div className="flex gap-2">
-                <button onClick={() => setEditing(true)} className="px-3 py-1 bg-indigo-600 text-white rounded">Edit profile</button>
-                <label className="px-3 py-1 border rounded cursor-pointer">
-                  <input type="file" className="hidden" onChange={e => setResumeFile(e.target.files[0])} accept=".pdf,.doc,.docx" />
-                  Upload resume
-                </label>
-                <button onClick={handleUploadAll} className="px-3 py-1 border rounded" disabled={uploading}>{uploading ? 'Uploading...' : 'Upload selected files'}</button>
-              </div>
-            </>
-          ) : (
-            <form onSubmit={saveProfile} className="space-y-3">
-              <div>
-                <label className="text-sm text-gray-500">Full name</label>
-                <input value={form.name} onChange={e => setForm({...form, name:e.target.value})} className="w-full p-2 border rounded" />
-              </div>
-              <div>
-                <label className="text-sm text-gray-500">Phone</label>
-                <input value={form.phone} onChange={e => setForm({...form, phone:e.target.value})} className="w-full p-2 border rounded" />
-              </div>
-              <div className="flex gap-2">
-                <button type="submit" className="px-3 py-1 bg-indigo-600 text-white rounded">Save</button>
-                <button onClick={() => setEditing(false)} type="button" className="px-3 py-1 border rounded">Cancel</button>
+              <div className="btn-row">
+                <button type="button" className="cancel-btn" onClick={() => setEditing(false)}>Cancel</button>
+                <button type="submit" className="save-btn">Save Changes</button>
               </div>
             </form>
+          ) : (
+            <div className="info-display">
+               <div className="info-row">
+                 <span className="label">Name</span>
+                 <span className="value">{data.profile.name}</span>
+               </div>
+               <div className="info-row">
+                 <span className="label">Email</span>
+                 <span className="value">{data.profile.email}</span>
+               </div>
+               <div className="info-row">
+                 <span className="label">Phone</span>
+                 <span className="value">{data.profile.phone || 'Not provided'}</span>
+               </div>
+            </div>
           )}
         </div>
-      )}
 
-      <div className="mt-6">
-        <h3 className="font-semibold mb-2">Upload documents (optional)</h3>
-        <div className="bg-white p-4 rounded shadow space-y-3">
-          <div>
-            <label className="block text-sm">Resume (PDF/DOC)</label>
-            <input type="file" accept=".pdf,.doc,.docx" onChange={e => setResumeFile(e.target.files[0])} />
-            {resumeFile && <div className="text-xs text-gray-600">{resumeFile.name}</div>}
-          </div>
-          <div>
-            <label className="block text-sm">Passport (PDF/PNG/JPG)</label>
-            <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={e => setPassportFile(e.target.files[0])} />
-            {passportFile && <div className="text-xs text-gray-600">{passportFile.name}</div>}
-          </div>
-          <div>
-            <label className="block text-sm">Work permit (PDF/PNG/JPG)</label>
-            <input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={e => setPermitFile(e.target.files[0])} />
-            {permitFile && <div className="text-xs text-gray-600">{permitFile.name}</div>}
-          </div>
-          <div className="flex gap-2">
-            <button onClick={handleUploadAll} className="px-4 py-2 bg-indigo-600 text-white rounded" disabled={uploading}>
-              {uploading ? 'Uploading...' : 'Upload documents'}
-            </button>
-          </div>
-          <div className="text-xs text-gray-500">Max file size: {(Number(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE || 5242880) / 1024 / 1024).toFixed(1)} MB</div>
+        {/* Documents Card */}
+        <div className="card">
+           <div className="card-header">
+             <h2>Documents</h2>
+           </div>
+           
+           <div className="doc-section">
+             <h3>Resume</h3>
+             <div className="file-list">
+                {data.profile.files?.filter(f => f.field === 'resume').map(f => (
+                    <a key={f.id} href={`/api/file/${f.id}`} target="_blank" className="file-link">
+                        📄 {f.originalName}
+                    </a>
+                ))}
+             </div>
+
+             <div className="upload-zone">
+                <input type="file" onChange={e => setResumeFile(e.target.files[0])} />
+                <button onClick={handleUpload} disabled={!resumeFile || uploading} className="upload-btn">
+                    {uploading ? 'Uploading...' : 'Upload New Resume'}
+                </button>
+             </div>
+           </div>
         </div>
       </div>
 
+      <style jsx>{`
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; font-family: sans-serif; }
+        .page-title { margin-bottom: 2rem; color: #1e293b; }
+        
+        .grid-layout { display: grid; gap: 2rem; }
+        
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem; }
+        .card-header h2 { font-size: 1.25rem; margin: 0; color: #1e293b; }
+        
+        .edit-btn { color: #4f46e5; background: none; border: none; font-weight: 600; cursor: pointer; }
+        
+        /* Info Display */
+        .info-row { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #f8fafc; }
+        .label { color: #64748b; }
+        .value { font-weight: 500; color: #1e293b; }
+
+        /* Forms */
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.875rem; margin-bottom: 0.5rem; color: #64748b; }
+        .form-group input { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; }
+        
+        .btn-row { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
+        .save-btn { background: #4f46e5; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; }
+        .cancel-btn { background: white; border: 1px solid #cbd5e1; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; }
+
+        /* Documents */
+        .file-link { display: block; padding: 0.5rem; background: #f1f5f9; margin-bottom: 0.5rem; border-radius: 0.5rem; color: #4f46e5; text-decoration: none; }
+        .upload-zone { margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center; }
+        .upload-btn { background: #1e293b; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; }
+        .upload-btn:disabled { opacity: 0.5; }
+      `}</style>
     </div>
   );
 }

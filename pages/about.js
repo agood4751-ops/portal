@@ -10,22 +10,22 @@ export default function About() {
           <div className="hero-content">
             <div className="hero-text">
               <div className="hero-badge">
-                🇨🇦 About Canada Jobs for Indians
+                🇨🇦 About Canada Jobs
               </div>
               <h1 className="hero-title">
-                Bridging Dreams Between 
-                <span className="gradient-text"> India & Canada</span>
+                Connecting
+                <span className="gradient-text"> Global Talent & Canada</span>
               </h1>
               <p className="hero-description">
-                We are dedicated to helping Indian professionals build successful careers in Canada. 
-                From entry-level positions to specialized roles, we connect talent with opportunity 
-                in the Great White North.
+                We help professionals from around the world build successful careers in Canada.
+                From entry-level roles to specialized positions, we connect diverse talent with
+                opportunities across the country.
               </p>
             </div>
             <div className="hero-image">
               <Image
                 src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-                alt="Indian professionals in Canada"
+                alt="Professionals in Canada"
                 width={600}
                 height={400}
                 className="hero-img"
@@ -43,8 +43,8 @@ export default function About() {
               <div className="mission-icon">🎯</div>
               <h3>Our Mission</h3>
               <p>
-                To simplify the Canadian job search for Indian professionals by providing 
-                curated opportunities, streamlined applications, and comprehensive support 
+                To simplify the Canadian job search for professionals everywhere by providing
+                curated opportunities, streamlined applications, and comprehensive support
                 throughout the employment journey.
               </p>
             </div>
@@ -52,16 +52,16 @@ export default function About() {
               <div className="mission-icon">👁️</div>
               <h3>Our Vision</h3>
               <p>
-                Creating a world where every Indian professional can easily access and 
-                succeed in the Canadian job market, contributing to both countries' economic growth.
+                Creating a world where professionals from any background can easily access and
+                succeed in the Canadian job market, contributing to global and local economic growth.
               </p>
             </div>
             <div className="mission-card">
               <div className="mission-icon">🚀</div>
               <h3>Our Promise</h3>
               <p>
-                Authentic job listings, transparent processes, and dedicated support to 
-                ensure your Canadian career dreams become reality.
+                Authentic job listings, transparent processes, and dedicated support to
+                ensure your Canadian career goals become reality.
               </p>
             </div>
           </div>
@@ -72,8 +72,8 @@ export default function About() {
       <section className="features-section">
         <div className="container">
           <div className="section-header">
-            <h2>Why Choose Canada Jobs for Indians?</h2>
-            <p>We understand the unique challenges faced by Indian job seekers in Canada</p>
+            <h2>Why Choose Canada Jobs?</h2>
+            <p>We understand the challenges professionals face when relocating or seeking new opportunities abroad</p>
           </div>
           
           <div className="features-grid">
@@ -110,7 +110,7 @@ export default function About() {
             <div className="feature-item">
               <div className="feature-icon">💼</div>
               <h4>Career Resources</h4>
-              <p>Access to Canadian workplace culture guides and interview tips</p>
+              <p>Access to Canadian workplace culture guides, relocation tips and interview advice</p>
             </div>
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function About() {
               <div className="step-number">3</div>
               <div className="step-content">
                 <h3>Find Opportunities</h3>
-                <p>Browse curated job listings from Canadian employers actively seeking Indian talent</p>
+                <p>Browse curated job listings from Canadian employers actively hiring international and local talent</p>
               </div>
             </div>
             
@@ -165,14 +165,14 @@ export default function About() {
         <div className="container">
           <div className="section-header">
             <h2>Success Stories</h2>
-            <p>Hear from Indians who found their dream jobs in Canada</p>
+            <p>Hear from professionals who found their dream jobs in Canada</p>
           </div>
           
           <div className="stories-grid">
             <div className="story-card">
               <Image
                 src="https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
-                alt="Priya Sharma"
+                alt="Priya sharma"
                 width={80}
                 height={80}
                 className="story-avatar"
@@ -181,13 +181,13 @@ export default function About() {
               <p className="story-role">Software Developer, Toronto</p>
               <p className="story-text">
                 "Within 2 weeks of creating my profile, I had 3 interviews. The platform made 
-                my transition from Mumbai to Toronto seamless!"
+                my transition to Toronto seamless!"
               </p>
             </div>
             
             <div className="story-card">
               <Image
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.30000&auto=format&fit=crop&w=500&q=80"
                 alt="Raj Patel"
                 width={80}
                 height={80}
@@ -203,7 +203,7 @@ export default function About() {
             
             <div className="story-card">
               <Image
-                src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
+                src=""
                 alt="Anita Reddy"
                 width={80}
                 height={80}
@@ -212,8 +212,7 @@ export default function About() {
               <h4>Anita Reddy</h4>
               <p className="story-role">Healthcare Professional, Calgary</p>
               <p className="story-text">
-                "As a nurse moving from Delhi, the platform helped me understand Canadian 
-                healthcare requirements and find the perfect role."
+                "The platform helped me understand Canadian healthcare requirements and find the perfect role."
               </p>
             </div>
           </div>
@@ -225,7 +224,7 @@ export default function About() {
         <div className="container">
           <div className="cta-content">
             <h2>Ready to Start Your Canadian Journey?</h2>
-            <p>Join thousands of Indian professionals who have found success in Canada</p>
+            <p>Join thousands of professionals who have found success in Canada</p>
             <div className="cta-buttons">
               <a href="/register" className="btn btn-primary">Create Your Account</a>
               <a href="/jobs" className="btn btn-secondary">Browse Jobs</a>

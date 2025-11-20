@@ -2,7 +2,7 @@
 import { useRouter } from 'next/router';
 import useSWR from 'swr';
 import JobCard from '../../components/JobCard';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 
 const fetcher = (url) => fetch(url).then((r) => r.json());
@@ -10,6 +10,7 @@ const fetcher = (url) => fetch(url).then((r) => r.json());
 export default function JobsList() {
   const router = useRouter();
   const { title: qTitle = '', location: qLocation = '' } = router.query;
+  
   const [title, setTitle] = useState(qTitle || '');
   const [location, setLocation] = useState(qLocation || '');
   const [filters, setFilters] = useState({
@@ -18,10 +19,32 @@ export default function JobsList() {
     featured: false
   });
 
+  // Suggestion states
+  const [titleSuggestions, setTitleSuggestions] = useState([]);
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  
+  // IMPROVEMENT: Interaction flags to prevent API calls when clicking
+  const [isTypingTitle, setIsTypingTitle] = useState(false);
+  const [isTypingLocation, setIsTypingLocation] = useState(false);
+
+  // Keyboard nav indices
+  const [titleIndex, setTitleIndex] = useState(-1);
+  const [locationIndex, setLocationIndex] = useState(-1);
+
+  // Refs
+  const titleRef = useRef(null);
+  const locationRef = useRef(null);
+  const titleAbortRef = useRef(null);
+  const locationAbortRef = useRef(null);
+
   useEffect(() => {
-    setTitle(qTitle || '');
-    setLocation(qLocation || '');
-  }, [qTitle, qLocation]);
+    if (router.isReady) {
+      setTitle(qTitle || '');
+      setLocation(qLocation || '');
+    }
+  }, [router.isReady, qTitle, qLocation]);
 
   const query = new URLSearchParams();
   if (qTitle) query.set('title', qTitle);
@@ -39,6 +62,10 @@ export default function JobsList() {
 
   function onSearch(e) {
     e?.preventDefault();
+    // Close suggestions on search
+    setShowTitleSuggestions(false);
+    setShowLocationSuggestions(false);
+
     const params = new URLSearchParams();
     if (title) params.set('title', title);
     if (location) params.set('location', location);
@@ -57,9 +84,145 @@ export default function JobsList() {
 
   const hasActiveFilters = title || location || filters.field || filters.type || filters.featured;
 
+  // --- Title Suggestion Logic ---
+  useEffect(() => {
+    // IMPROVEMENT: Don't fetch if we just clicked a suggestion
+    if (!isTypingTitle) return;
+
+    if (titleAbortRef.current) titleAbortRef.current.abort();
+    const q = String(title || '').trim();
+    
+    if (q.length < 2) {
+      setTitleSuggestions([]);
+      setTitleIndex(-1);
+      setShowTitleSuggestions(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    titleAbortRef.current = controller;
+    
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/suggest?type=title&q=${encodeURIComponent(q)}&limit=12`, { signal: controller.signal });
+        if (!res.ok) return;
+        const body = await res.json();
+        setTitleSuggestions(body.suggestions || []);
+        setShowTitleSuggestions(true);
+        setTitleIndex(-1);
+      } catch (err) {
+        if (err.name !== 'AbortError') console.error('Title suggest error', err);
+      }
+    }, 300); // Increased debounce to 300ms for performance
+    return () => {
+      clearTimeout(t);
+      controller.abort();
+    };
+  }, [title, isTypingTitle]);
+
+  // --- Location Suggestion Logic ---
+  useEffect(() => {
+    if (!isTypingLocation) return;
+
+    if (locationAbortRef.current) locationAbortRef.current.abort();
+    const q = String(location || '').trim();
+    
+    if (q.length < 2) {
+      setLocationSuggestions([]);
+      setLocationIndex(-1);
+      setShowLocationSuggestions(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    locationAbortRef.current = controller;
+    
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/suggest?type=location&q=${encodeURIComponent(q)}&limit=12`, { signal: controller.signal });
+        if (!res.ok) return;
+        const body = await res.json();
+        setLocationSuggestions(body.suggestions || []);
+        setShowLocationSuggestions(true);
+        setLocationIndex(-1);
+      } catch (err) {
+        if (err.name !== 'AbortError') console.error('Location suggest error', err);
+      }
+    }, 300);
+    return () => {
+      clearTimeout(t);
+      controller.abort();
+    };
+  }, [location, isTypingLocation]);
+
+  // Click outside handler
+  useEffect(() => {
+    function onDocClick(e) {
+      if (titleRef.current && !titleRef.current.contains(e.target)) {
+        setShowTitleSuggestions(false);
+      }
+      if (locationRef.current && !locationRef.current.contains(e.target)) {
+        setShowLocationSuggestions(false);
+      }
+    }
+    document.addEventListener('click', onDocClick);
+    return () => document.removeEventListener('click', onDocClick);
+  }, []);
+
+  // --- Robust Selection Handlers ---
+  const pickTitleSuggestion = useCallback((s) => {
+    setIsTypingTitle(false); // Stop fetching
+    setTitle(s);
+    setShowTitleSuggestions(false);
+    setTitleIndex(-1);
+  }, []);
+
+  const pickLocationSuggestion = useCallback((s) => {
+    setIsTypingLocation(false); // Stop fetching
+    setLocation(s);
+    setShowLocationSuggestions(false);
+    setLocationIndex(-1);
+  }, []);
+
+  function onTitleKeyDown(e) {
+    if (!showTitleSuggestions || titleSuggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setTitleIndex(i => Math.min(i + 1, titleSuggestions.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setTitleIndex(i => Math.max(i - 1, 0));
+    } else if (e.key === 'Enter') {
+      if (titleIndex >= 0 && titleIndex < titleSuggestions.length) {
+        e.preventDefault(); // Stop form submit
+        pickTitleSuggestion(titleSuggestions[titleIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      setShowTitleSuggestions(false);
+    }
+  }
+
+  function onLocationKeyDown(e) {
+    if (!showLocationSuggestions || locationSuggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setLocationIndex(i => Math.min(i + 1, locationSuggestions.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setLocationIndex(i => Math.max(i - 1, 0));
+    } else if (e.key === 'Enter') {
+      if (locationIndex >= 0 && locationIndex < locationSuggestions.length) {
+        e.preventDefault(); // Stop form submit
+        pickLocationSuggestion(locationSuggestions[locationIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      setShowLocationSuggestions(false);
+    }
+  }
+
   return (
     <div className="jobs-container">
-      {/* Hero Section */}
+      {/* Hero Section (Unchanged) */}
       <section className="jobs-hero">
         <div className="container">
           <div className="hero-content">
@@ -74,7 +237,7 @@ export default function JobsList() {
             </div>
             <div className="hero-visual">
               <Image
-                src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80"
+                src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80"
                 alt="Professionals working"
                 width={400}
                 height={300}
@@ -89,26 +252,77 @@ export default function JobsList() {
       <section className="search-section">
         <div className="container">
           <div className="search-card">
-            <form onSubmit={onSearch} className="search-form">
+            <form onSubmit={onSearch} className="search-form" autoComplete="off">
               <div className="search-inputs">
-                <div className="input-group">
+                
+                {/* Title Input */}
+                <div className="input-group" ref={titleRef}>
                   <span className="input-icon">🔍</span>
                   <input
                     className="search-input"
                     placeholder="Job title, keywords, or company"
                     value={title}
-                    onChange={e => setTitle(e.target.value)}
+                    onChange={e => { 
+                      setIsTypingTitle(true); 
+                      setTitle(e.target.value); 
+                    }}
+                    onFocus={() => { if (titleSuggestions.length) setShowTitleSuggestions(true); }}
+                    onKeyDown={onTitleKeyDown}
+                    aria-autocomplete="list"
+                    aria-haspopup="true"
+                    aria-expanded={showTitleSuggestions}
                   />
+                  {showTitleSuggestions && titleSuggestions.length > 0 && (
+                    <ul className="suggestions-list" role="listbox">
+                      {titleSuggestions.map((s, i) => (
+                        <li
+                          key={s + '-' + i}
+                          role="option"
+                          aria-selected={i === titleIndex}
+                          className={`suggestion-item ${i === titleIndex ? 'selected' : ''}`}
+                          onMouseDown={(ev) => ev.preventDefault()} /* Prevents input blur */
+                          onClick={() => pickTitleSuggestion(s)}
+                        >
+                          {s}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 
-                <div className="input-group">
+                {/* Location Input */}
+                <div className="input-group" ref={locationRef}>
                   <span className="input-icon">📍</span>
                   <input
                     className="search-input"
                     placeholder="City, province, or postal code"
                     value={location}
-                    onChange={e => setLocation(e.target.value)}
+                    onChange={e => { 
+                      setIsTypingLocation(true); 
+                      setLocation(e.target.value); 
+                    }}
+                    onFocus={() => { if (locationSuggestions.length) setShowLocationSuggestions(true); }}
+                    onKeyDown={onLocationKeyDown}
+                    aria-autocomplete="list"
+                    aria-haspopup="true"
+                    aria-expanded={showLocationSuggestions}
                   />
+                  {showLocationSuggestions && locationSuggestions.length > 0 && (
+                    <ul className="suggestions-list" role="listbox">
+                      {locationSuggestions.map((s, i) => (
+                        <li
+                          key={s + '-' + i}
+                          role="option"
+                          aria-selected={i === locationIndex}
+                          className={`suggestion-item ${i === locationIndex ? 'selected' : ''}`}
+                          onMouseDown={(ev) => ev.preventDefault()}
+                          onClick={() => pickLocationSuggestion(s)}
+                        >
+                          {s}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 
                 <button type="submit" className="search-button">
@@ -116,6 +330,7 @@ export default function JobsList() {
                 </button>
               </div>
 
+              {/* Filters (Unchanged) */}
               <div className="filters-section">
                 <div className="filters-header">
                   <span className="filters-label">Filters</span>
@@ -174,12 +389,12 @@ export default function JobsList() {
         </div>
       </section>
 
-      {/* Results Section */}
+      {/* Results Section (Unchanged) */}
       <section className="results-section">
         <div className="container">
           <div className="results-header">
             <h2 className="results-title">
-              Available Jobs {totalJobs > 0 && `(${totalJobs})`}
+              Available Jobs 
             </h2>
             {hasActiveFilters && (
               <div className="active-filters">
@@ -287,6 +502,8 @@ export default function JobsList() {
           padding: 2rem;
           border-radius: 20px;
           box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+          /* IMPORTANT: Allow suggestion dropdown to flow outside */
+          overflow: visible; 
         }
 
         .search-form {
@@ -302,6 +519,7 @@ export default function JobsList() {
           align-items: start;
         }
 
+        /* IMPORTANT: Styles for Suggestion UI */
         .input-group {
           display: flex;
           align-items: center;
@@ -311,6 +529,7 @@ export default function JobsList() {
           border-radius: 12px;
           border: 2px solid transparent;
           transition: all 0.3s ease;
+          position: relative; /* Needed for absolute positioning of suggestions */
         }
 
         .input-group:focus-within {
@@ -318,6 +537,43 @@ export default function JobsList() {
           background: white;
           box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
         }
+
+        .suggestions-list {
+          position: absolute;
+          top: 100%; /* Push directly below input */
+          left: 0;
+          right: 0;
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 0 0 12px 12px;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+          margin-top: 4px;
+          max-height: 300px;
+          overflow-y: auto;
+          list-style: none;
+          padding: 0;
+          z-index: 100; /* Ensure it sits on top of other content */
+        }
+
+        .suggestion-item {
+          padding: 0.75rem 1rem;
+          cursor: pointer;
+          color: #1e293b;
+          font-size: 0.95rem;
+          border-bottom: 1px solid #f1f5f9;
+          background: white;
+        }
+
+        .suggestion-item:last-child {
+          border-bottom: none;
+        }
+
+        .suggestion-item:hover, .suggestion-item.selected {
+          background-color: #fef2f2;
+          color: #dc2626;
+          font-weight: 500;
+        }
+        /* End Suggestion Styles */
 
         .input-icon {
           font-size: 1.25rem;

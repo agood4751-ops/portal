@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 export default function WhatsAppWidget() {
   // REPLACE THIS WITH YOUR ACTUAL PHONE NUMBER (Format: CountryCode + Number, no + sign)
   // Example: 15551234567
-  const phoneNumber = "+12893028009"; 
+  const phoneNumber = "12893028009"; 
   const defaultMessage = "Hi, I need help finding a job in Canada.";
   const [isVisible, setIsVisible] = useState(true);
 

@@ -70,9 +70,9 @@ export default function JobCard({ job }) {
         >
           {job.field}
         </span>
-        {job.featured && (
-          <span className="featured-tag">
-            ⭐ Featured
+        {job.tags?.includes('popular') && (
+          <span className="popular-tag">
+            🔥 Popular
           </span>
         )}
       </div>

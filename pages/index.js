@@ -13,7 +13,22 @@ export default function Home() {
   const router = useRouter();
   const { data } = useSWR('/api/jobs', fetcher, { fallbackData: { jobs: [] } });
 
-  const featured = (data?.jobs || []).filter(j => j.featured).slice(0,6);
+  // const featured = (data?.jobs || []).filter(j => j.featured).slice(0,6);
+
+    // Show jobs tagged 'popular' on homepage. Fallback to featured when no popular jobs.
+  const homepageJobs = (data?.jobs || [])
+    .filter(j => Array.isArray(j.tags) ? j.tags.includes('popular') : false)
+    .slice(0, 6);
+
+  // If there are fewer than 6 popular jobs, supplement with featured jobs
+  if (homepageJobs.length < 6) {
+    const need = 6 - homepageJobs.length;
+    const supplemental = (data?.jobs || [])
+      .filter(j => j.featured && !(Array.isArray(j.tags) && j.tags.includes('popular')))
+      .slice(0, need);
+    homepageJobs.push(...supplemental);
+  }
+
 
   function onSearch(e){
     e?.preventDefault();
@@ -156,12 +171,12 @@ export default function Home() {
           </div>
 
           <div className="jobs-grid">
-            {featured.length ? (
-              featured.map(job => <JobCard key={job._id} job={job} />)
+            {homepageJobs.length ? (
+              homepageJobs.map(job => <JobCard key={job._id} job={job} />)
             ) : (
               <div className="empty-state">
                 <div className="empty-icon">📋</div>
-                <h3>No featured jobs available</h3>
+                <h3>No popular jobs available</h3>
                 <p>Check back later for new opportunities</p>
               </div>
             )}
